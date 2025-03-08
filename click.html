@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Click</title>
+    <style>
+        body {
+            background: #1a1a1a;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .click-item {
+            width: 100px;
+            height: 100px;
+            margin: 20px;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            color: white;
+            user-select: none;
+        }
+
+        #counter {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            font-size: 24px;
+            font-family: Arial, sans-serif;
+        }
+
+        .bubble {
+            background: rgba(100, 200, 255, 0.7);
+            border-radius: 50%;
+            animation: float 3s infinite;
+        }
+
+        .toggle-switch {
+            background: #444;
+            border-radius: 50px;
+            width: 200px;
+            height: 100px;
+        }
+
+        .toggle-switch.active {
+            background: #4CAF50;
+        }
+
+        .toggle-knob {
+            background: #fff;
+            height: 80px;
+            width: 80px;
+            border-radius: 50%;
+            transform: translateX(10px);
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active .toggle-knob {
+            transform: translateX(110px);
+        }
+
+        .button {
+            background: #FF4081;
+            border-radius: 10px;
+            font-size: 20px;
+        }
+
+        .button:active {
+            transform: scale(0.9);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div id="counter">Clicks: 0</div>
+
+    <div class="click-item bubble">POP ME</div>
+    <div class="click-item toggle-switch">
+        <div class="toggle-knob"></div>
+    </div>
+    <div class="click-item button">CLICK!</div>
+    <div class="click-item" id="drag" style="background: #FFD700; border-radius: 10px;">DRAG ME</div>
+
+<script>
+    let clickCount = 0;
+    const counter = document.getElementById('counter');
+
+    // Click handlers
+    document.querySelectorAll('.click-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            clickCount++;
+            counter.textContent = `Clicks: ${clickCount}`;
+            
+            if(this.classList.contains('bubble')) {
+                createParticles(e.clientX, e.clientY);
+                this.style.transform = 'scale(0)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 200);
+            }
+
+            if(this.classList.contains('toggle-switch')) {
+                this.classList.toggle('active');
+            }
+
+            if(this.classList.contains('button')) {
+                this.style.background = `hsl(${Math.random() * 360}, 70%, 60%)`;
+            }
+        });
+    });
+
+    // Create bubble particles
+    function createParticles(x, y) {
+        for(let i = 0; i < 5; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = `${x}px`;
+            particle.style.top = `${y}px`;
+            particle.style.width = `${Math.random() * 10 + 5}px`;
+            particle.style.height = particle.style.width;
+            
+            const angle = Math.random() * Math.PI * 2;
+            const velocity = Math.random() * 5 + 2;
+            particle.style.transform = `translate(${Math.cos(angle) * velocity}px, ${Math.sin(angle) * velocity}px)`;
+            
+            document.body.appendChild(particle);
+            
+            setTimeout(() => {
+                particle.remove();
+            }, 500);
+        }
+    }
+
+    // Draggable element
+    const dragItem = document.getElementById('drag');
+    let isDragging = false;
+    let currentX = 0;
+    let currentY = 0;
+    let initialX = 0;
+    let initialY = 0;
+    let xOffset = 0;
+    let yOffset = 0;
+
+    dragItem.addEventListener('mousedown', dragStart);
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', dragEnd);
+
+    function dragStart(e) {
+        initialX = e.clientX - xOffset;
+        initialY = e.clientY - yOffset;
+        
+        if (e.target === dragItem) {
+            isDragging = true;
+        }
+    }
+
+    function drag(e) {
+        if (isDragging) {
+            e.preventDefault();
+            currentX = e.clientX - initialX;
+            currentY = e.clientY - initialY;
+            
+            xOffset = currentX;
+            yOffset = currentY;
+            
+            setTranslate(currentX, currentY, dragItem);
+        }
+    }
+
+    function setTranslate(xPos, yPos, el) {
+        el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+    }
+
+    function dragEnd() {
+        initialX = currentX;
+        initialY = currentY;
+        isDragging = false;
+    }
+
+    // Create random bubbles
+    setInterval(() => {
+        const bubble = document.createElement('div');
+        bubble.className = 'click-item bubble';
+        bubble.style.position = 'absolute';
+        bubble.style.left = `${Math.random() * 90 + 5}%`;
+        bubble.style.top = `${Math.random() * 90 + 5}%`;
+        bubble.textContent = 'POP ME';
+        document.body.appendChild(bubble);
+        
+        bubble.addEventListener('click', () => {
+            clickCount++;
+            counter.textContent = `Clicks: ${clickCount}`;
+            createParticles(
+                bubble.offsetLeft + 50,
+                bubble.offsetTop + 50
+            );
+            bubble.remove();
+        });
+    }, 3000);
+</script>
+</body>
+</html>
